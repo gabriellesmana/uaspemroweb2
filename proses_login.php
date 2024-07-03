@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
 
     $query = "SELECT * FROM login WHERE username='$username' AND password='$password'";
-    $result = $koneksi->query($query);
+    $result = $conn->query($query);
     
     if ($result->num_rows == 1) {
     

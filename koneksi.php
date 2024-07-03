@@ -1,14 +1,16 @@
 <?php
-// koneksi.php
+// Contoh simpan ke database MySQL
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "euro_data";
 
-$host = 'localhost'; 
-$username = 'root'; 
-$password = ''; 
-$database = 'uefa_groups'; 
+// Buat koneksi
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-$koneksi = new mysqli($host, $username, $password, $database);
-
-if ($koneksi->connect_error) {
-    die("Koneksi gagal: " . $koneksi->connect_error);
+// Periksa koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
 }
+
 ?>

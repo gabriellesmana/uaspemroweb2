@@ -1,130 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Grup UEFA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link rel="stylesheet" href="index.css">
-</head>
-
-<body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Input Data Group UEFA</h1>
-
-        <!-- Tabel Data Group A -->
-        <h2 class="mt-5">Data Group A</h2>
-        <table class="table table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>Group</th>
-                    <th>Negara</th>
-                    <th>Menang</th>
-                    <th>Seri</th>
-                    <th>Kalah</th>
-                    <th>Point</th>
-                </tr>
-            </thead>
-            <tbody>
-    <?php
-    include 'koneksi.php';
-
-    $group_name = isset($_GET['group']) ? $_GET['group'] : 'A';
-
-    // Query untuk mendapatkan data dari Group yang dipilih
-    $result_data = $koneksi->query("SELECT g.group_name, c.country_name, gr.win, gr.draw, gr.loss, gr.points
-                                    FROM group_results gr
-                                    LEFT JOIN groups g ON gr.group_id = g.group_id
-                                    LEFT JOIN countries c ON gr.country_id = c.country_id
-                                    WHERE g.group_name = '$group_name'");
-
-    // Memeriksa apakah query berhasil dieksekusi
-    if ($result_data && $result_data->num_rows > 0) {
-        // Menampilkan data dengan fetch_assoc() jika query berhasil
-        while ($row = $result_data->fetch_assoc()) {
-            echo "<tr>";
-            echo "<td>" . $row['group_name'] . "</td>";
-            echo "<td>" . $row['country_name'] . "</td>";
-            echo "<td>" . $row['win'] . "</td>";
-            echo "<td>" . $row['draw'] . "</td>";
-            echo "<td>" . $row['loss'] . "</td>";
-            echo "<td>" . $row['points'] . "</td>";
-            echo "<td><input type='checkbox' name='print_check[]' value='" . $row['country_name'] . "'></td>";
-            echo "</tr>";
+    <title>Input Data UEFA Groups</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
         }
-    } else {
-        // Menampilkan pesan jika query tidak mengembalikan hasil
-        echo "<tr><td colspan='7'>Tidak ada data untuk grup $group_name.</td></tr>";
-    }
-
-    // Menutup koneksi ke database
-    $koneksi->close();
-    ?>
-</tbody>
-
-        </table>
-
-        <!-- Form Input Data -->
-        <h2 class="mt-5">Tambah Data</h2>
-        <form action="save_data.php" method="post">
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Input Data UEFA Groups</h1>
+        <form action="submit.php" method="POST" id="inputForm">
             <div class="mb-3">
-                <label for="group">Pilih Grup:</label>
-                <select id="group" name="group" class="form-select">
-                    <option value="A">Grup A</option>
-                    <option value="B">Grup B</option>
-                    <option value="C">Grup C</option>
-                    <option value="D">Grup D</option>
+                <label for="grup" class="form-label">Grup:</label>
+                <select id="grup" name="grup" class="form-select" onchange="updateNegara()">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
                 </select>
             </div>
             <div class="mb-3">
-                <label for="country">Pilih Negara:</label>
-                <select id="country" name="country" class="form-select">
-                    <!-- Options dari basis data negara -->
-                    <?php
-                    include 'koneksi.php';
-
-                    // Query untuk mendapatkan data negara
-                    $result_countries = $koneksi->query("SELECT * FROM countries");
-
-                    // Memeriksa apakah query berhasil dieksekusi
-                    if ($result_countries && $result_countries->num_rows > 0) {
-                        // Menampilkan opsi negara dalam bentuk dropdown
-                        while ($row = $result_countries->fetch_assoc()) {
-                            echo "<option value='" . $row['country_id'] . "'>" . $row['country_name'] . "</option>";
-                        }
-                    } else {
-                        // Menampilkan pesan error jika query negara tidak mengembalikan hasil
-                        echo "<option value=''>Tidak ada negara tersedia.</option>";
-                    }
-
-                    // Menutup koneksi ke database
-                    $koneksi->close();
-                    ?>
+                <label for="negara" class="form-label">Negara:</label>
+                <select id="negara" name="negara" class="form-select">
+                    <!-- Options akan diisi oleh JavaScript -->
                 </select>
             </div>
             <div class="mb-3">
-                <label for="menang">Menang:</label>
-                <input type="text" id="menang" name="menang" class="form-control">
+                <label for="menang" class="form-label">Menang:</label>
+                <input type="number" id="menang" name="menang" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label for="seri">Seri:</label>
-                <input type="text" id="seri" name="seri" class="form-control">
+                <label for="kalah" class="form-label">Kalah:</label>
+                <input type="number" id="kalah" name="kalah" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label for="kalah">Kalah:</label>
-                <input type="text" id="kalah" name="kalah" class="form-control">
+                <label for="point" class="form-label">Point:</label>
+                <input type="number" id="point" name="point" class="form-control" readonly>
             </div>
-            <div class="mb-3">
-                <label for="point">Point:</label>
-                <input type="text" id="point" name="point" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+            <button type="submit" class="btn btn-primary w-100">Submit</button>
+            <a href="grup.php" class="button">Lihat Data Group A</a>
+            <a href="edit.php" class="button">Ubah Data Group A</a>
         </form>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-</body>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const negaraData = {
+            A: ['Germany', 'Scotland', 'Hungary', 'Switzerland'],
+            B: ['Spain', 'Croatia', 'Italy', 'Albania'],
+            C: ['Slovenia', 'Denmark', 'Serbia', 'England'],
+            D: ['Portugal', 'Turkey', 'C']
+        };
 
+        function updateNegara() {
+            const grup = document.getElementById('grup').value;
+            const negaraSelect = document.getElementById('negara');
+            
+            // Hapus opsi sebelumnya
+            negaraSelect.innerHTML = '';
+
+            // Tambah opsi baru berdasarkan grup yang dipilih
+            negaraData[grup].forEach(negara => {
+                const option = document.createElement('option');
+                option.value = negara;
+                option.textContent = negara;
+                negaraSelect.appendChild(option);
+            });
+        }
+
+        function calculatePoints() {
+    const menang = parseInt(document.getElementById('menang').value) || 0;
+    const kalah = parseInt(document.getElementById('kalah').value) || 0;
+    const pointInput = document.getElementById('point');
+    
+    const point = 3 * menang - 3 * kalah; // Perhitungan point sesuai aturan Anda
+
+    pointInput.value = point;
+}
+
+
+        // Panggil fungsi updateNegara saat halaman pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNegara();
+
+            // Tambahkan event listener untuk input menang dan kalah
+            document.getElementById('menang').addEventListener('input', calculatePoints);
+            document.getElementById('kalah').addEventListener('input', calculatePoints);
+        });
+    </script>
+</body>
 </html>
